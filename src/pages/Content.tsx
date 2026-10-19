@@ -15,11 +15,11 @@ const THEMES = [
   ['October', 'Small Business Month'], ['November', 'Manufacturing and digital health'], ['December', 'Economic and social development'],
 ]
 
-export function Content() {
+export function Content(props: { tab?: string; title?: string } = {}) {
   const db = useDb()
   const route = useRoute()
   const ui = useUi()
-  const tab = route[1] ?? 'podcasts'
+  const tab = props.tab ?? route[1] ?? 'podcasts'
   const [toast, say] = useToast()
   const [editing, setEditing] = useState<ContentItem | null>(null)
 
@@ -68,7 +68,7 @@ export function Content() {
   return (
     <>
       <div className="page-head">
-        <div><h1>Content Studio</h1><p>Podcasts, interviews and articles, from invite to published. Publishing is the moment a lead becomes a relationship: it starts the 12-month journey.</p></div>
+        <div><h1>{props.title ?? 'Content Studio'}</h1><p>Podcasts, interviews and articles, from invite to published. Publishing is the moment a lead becomes a relationship: it starts the 12-month journey.</p></div>
       </div>
       <div className="grid c4 mb">
         <Stat label="In production" value={inProd.length} sub="recorded, editing or with the client" />
@@ -76,7 +76,7 @@ export function Content() {
         <Stat label="Published this month" value={publishedThisMonth.length} />
         <Stat label="Invites out" value={items.filter(ci => ci.status === 'Invited').length} sub="waiting on a yes" />
       </div>
-      <Tabs base="content" items={[{ key: 'podcasts', label: 'Podcasts and interviews', count: podcasts.length }, { key: 'articles', label: 'Articles and quotes', count: articles.length }, { key: 'calendar', label: 'Editorial calendar' }]} />
+      {!props.tab && <Tabs base="content" items={[{ key: 'podcasts', label: 'Podcasts and interviews', count: podcasts.length }, { key: 'articles', label: 'Articles and quotes', count: articles.length }, { key: 'calendar', label: 'Editorial calendar' }]} />}
 
       {tab === 'podcasts' && <Table list={podcasts} />}
       {tab === 'articles' && <Table list={articles} />}

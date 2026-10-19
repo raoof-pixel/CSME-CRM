@@ -9,11 +9,11 @@ import { LogActivity } from '../components/LogActivity'
 import { AddCompany } from './Pipeline'
 import type { Brand, Stage, ContentType, Contact } from '../data/types'
 
-export function Companies() {
+export function Companies(props: { tab?: string } = {}) {
   const db = useDb()
   const route = useRoute()
   const ui = useUi()
-  const tab = route[1] ?? 'all'
+  const tab = props.tab ?? route[1] ?? 'all'
   const [q, setQ] = useState('')
   const [stage, setStageF] = useState('all')
   const [owner, setOwner] = useState('all')
@@ -39,10 +39,10 @@ export function Companies() {
   return (
     <>
       <div className="page-head">
-        <div><h1>Companies</h1><p>The one shared list. Open a company to see its whole history on one page: contacts, content, journey, deals and invoices.</p></div>
+        <div><h1>{tab === 'contacts' ? 'Contacts' : 'Companies'}</h1><p>The one shared list. Open a company to see its whole history on one page: contacts, content, journey, deals and invoices.</p></div>
         <div className="page-actions"><button className="btn pri" onClick={() => setAdding(true)}><Icons.plus />Add company</button></div>
       </div>
-      <Tabs base="companies" items={[{ key: 'all', label: 'Companies', count: rows.length }, { key: 'contacts', label: 'Contacts', count: contacts.length }]} />
+      {!props.tab && <Tabs base="companies" items={[{ key: 'all', label: 'Companies', count: rows.length }, { key: 'contacts', label: 'Contacts', count: contacts.length }]} />}
 
       <div className="filters">
         <input className="grow" placeholder={tab === 'contacts' ? 'Search people or companies' : 'Search name, industry or city'} value={q} onChange={(e: any) => setQ(e.target.value)} />

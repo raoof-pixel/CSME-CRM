@@ -13,10 +13,10 @@ const GUIDES: Array<{ title: string; steps: string[] }> = [
   { title: 'Who does what', steps: ['SK: founder decisions, big deals, approvals.', 'Raoof: sales lead, owners and targets, weekly review.', 'Maheen, Nishat, Kripa, Amanda: owners of their companies end to end.', 'Angana: articles and email interviews.', 'Ashraf: magazine and podcast edits.', 'Azhar: websites, sponsor logos, registration pages.'] },
 ]
 
-export function Team() {
+export function Team(props: { tab?: string; title?: string; blurb?: string } = {}) {
   const db = useDb()
   const route = useRoute()
-  const tab = route[1] ?? 'performance'
+  const tab = props.tab ?? route[1] ?? 'performance'
   const [toast, say] = useToast()
   const [taskDrawer, setTaskDrawer] = useState(false)
   const [meetingDrawer, setMeetingDrawer] = useState<Meeting | 'new' | null>(null)
@@ -44,11 +44,12 @@ export function Team() {
   return (
     <>
       <div className="page-head">
-        <div><h1>Team</h1><p>Who is doing what with their companies, one task list, one meeting log, and the playbook.</p></div>
+        <div><h1>{props.title ?? 'Team'}</h1><p>{props.blurb ?? 'Who is doing what with their companies, one task list, one meeting log, and the playbook.'}</p></div>
       </div>
-      <Tabs base="team" items={[{ key: 'performance', label: 'Performance' }, { key: 'tasks', label: 'Tasks', count: db.tasks.filter(t => t.status !== 'Done').length }, { key: 'meetings', label: 'Meetings', count: db.meetings.length }, { key: 'knowledge', label: 'Playbook' }]} />
+      {!props.tab && <Tabs base="team-page" items={[{ key: 'performance', label: 'Performance' }, { key: 'tasks', label: 'Tasks', count: db.tasks.filter(t => t.status !== 'Done').length }, { key: 'meetings', label: 'Meetings', count: db.meetings.length }, { key: 'knowledge', label: 'Playbook' }]} />}
 
-      {tab === 'performance' && (
+      {tab === 'performance' && <TeamPerformance />}
+      {false && (
         <div className="stack" style={{ gap: 16 }}>
           <div className="card wrap">
             <div className="hd"><h2>Sales this month<span className="sub">{new Date().toLocaleDateString('en-CA', { month: 'long', year: 'numeric' })}</span></h2><a className="btn sm" href="#/admin/targets">Edit targets</a></div>
@@ -184,5 +185,56 @@ function MeetingDrawer({ meeting, onClose, onSaved }: { meeting: Meeting | null;
         <p className="note">Notes on a client meeting are also written into that company's history.</p>
       </div>
     </Drawer>
+  )
+}
+
+export function TeamPerformance() {
+  const db = useDb()
+  const month = new Date().toISOString().slice(0, 7)
+  const weekAgo = addDays(todayIso(), -7)
+  const sales = db.people.filter(p => p.role === 'Sales' || p.role === 'Sales lead')
+  const perf = sales.map(p => {
+    const owned = db.companies.filter(c => c.ownerId === p.id && !c.archived)
+    const closed = db.deals.filter(d => d.ownerId === p.id && d.stage === 'Won' && d.updatedAt.slice(0, 7) === month).reduce((s, d) => s + d.value, 0)
+    const pipeline = db.deals.filter(d => d.ownerId === p.id && !['Won', 'Lost'].includes(d.stage)).reduce((s, d) => s + d.value, 0)
+    const overdue = db.deals.filter(d => d.ownerId === p.id && !['Won', 'Lost'].includes(d.stage) && d.nextFollowUp && d.nextFollowUp < todayIso()).length
+    const touches = db.activities.filter(a => a.personId === p.id && a.kind !== 'System' && a.date.slice(0, 10) >= weekAgo).length
+    const nurturing = owned.filter(c => c.stage === 'Nurturing')
+    const cold = nurturing.filter(c => healthOf(db, c.id) === 'Cold').length
+    const notContacted = owned.filter(c => c.stage === 'Assigned').length
+    return { p, owned: owned.length, closed, pipeline, overdue, touches, nurturing: nurturing.length, cold, notContacted }
+  })
+  const recent = db.activities.filter(a => a.kind !== 'System' && a.date.slice(0, 10) >= weekAgo).sort((a, b) => b.date.localeCompare(a.date))
+  return (
+    <div className="stack" style={{ gap: 16 }}>
+      <div className="card wrap">
+        <div className="hd"><h2>Sales this month<span className="sub">{new Date().toLocaleDateString('en-CA', { month: 'long', year: 'numeric' })}</span></h2><a className="btn sm" href="#/targets">Edit targets</a></div>
+        <table className="tbl">
+          <thead><tr><th>Person</th><th className="num">Target</th><th className="num">Closed</th><th>Progress</th><th className="num">Pipeline</th><th className="num">Companies</th><th className="num">Not contacted</th><th className="num">In nurture</th><th className="num">Cold</th><th className="num">Overdue</th><th className="num">Touches, 7 days</th></tr></thead>
+          <tbody>
+            {perf.map(r => { const t = r.p.monthlyTarget ?? 0; const pct = t ? Math.min(100, Math.round((r.closed / t) * 100)) : 0; return (
+              <tr key={r.p.id}>
+                <td><b>{r.p.name}</b><div className="muted small">{r.p.brands.length > 3 ? 'All brands' : r.p.brands.join(', ')}</div></td>
+                <td className="num">{t ? fmtMoney(t) : <span className="muted">not set</span>}</td>
+                <td className="num money">{fmtMoney(r.closed)}</td>
+                <td style={{ minWidth: 120 }}>{t ? <><div className="progress"><i style={{ width: `${pct}%` }} /></div><div className="muted small">{pct}%</div></> : <span className="muted">—</span>}</td>
+                <td className="num">{fmtMoney(r.pipeline)}</td><td className="num">{r.owned}</td>
+                <td className="num" style={r.notContacted ? { color: 'var(--warn)' } : undefined}>{r.notContacted}</td>
+                <td className="num">{r.nurturing}</td>
+                <td className="num" style={r.cold ? { color: 'var(--maple)' } : undefined}>{r.cold}</td>
+                <td className="num" style={r.overdue ? { color: 'var(--warn)' } : undefined}>{r.overdue}</td>
+                <td className="num">{r.touches}</td>
+              </tr>) })}
+          </tbody>
+        </table>
+      </div>
+      <div className="card">
+        <div className="hd"><h2>What was done in the last 7 days<span className="sub">whole team</span></h2></div>
+        <div className="bd"><div className="timeline">
+          {recent.slice(0, 25).map(a => { const c = db.companies.find(x => x.id === a.companyId); return <div key={a.id} className="ev"><div className="when">{fmtDate(a.date)}</div><div><span className="k">{personName(a.personId)}</span>{a.channel ?? a.kind} · <a className="lnk" href={`#/company/${a.companyId}`}>{c?.name}</a> · {a.summary}</div></div> })}
+          {recent.length === 0 && <p className="muted small">Nothing logged this week.</p>}
+        </div></div>
+      </div>
+    </div>
   )
 }

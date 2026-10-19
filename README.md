@@ -10,19 +10,15 @@ Grow      Nurturing → Pitched → Won → Delivered
 
 **Published starts a 12-month journey** of helpful touches on the company page. That journey is what keeps a podcast guest or interviewee warm between the content and the SMB Show or Summit pitch, which is where leads used to go cold.
 
-## What is where
+## How it is organised
 
-| Menu | What it is for |
-| --- | --- |
-| Today | Everything that needs a person today: follow-ups, journey touches, proposal chasers, invoices, deliverables, meetings, tasks |
-| Founder | Money, big deals, decisions, brands side by side, history. Only what needs SK |
-| Pipeline | One board, five views: Leads, Outreach, Content, Nurture, Deals |
-| Companies | The one shared list and the one company page (contacts, journey, deals, content, history) |
-| Content Studio | Podcasts, interviews and articles from invite to published; editorial calendar |
-| Events | SMB Show, SMB Summit, SMB Awards: overview, sales, program, logistics, money, settings |
-| Sell and deliver | Deals and proposals, rate card, pitch library, deliverables, invoices |
-| Team | Performance, tasks, meetings and notes, playbook |
-| Admin | Settings, people, automation rules, targets, data quality, backup, help |
+Three levels, same names as before:
+
+1. **Main menu** (left rail): Today, Events, AI, Team & Targets, Media & Publications, Sales & CRM, Operations, Founder Tools, Help.
+2. **Submenu** (second column): every page in that menu. Media & Publications holds Podcast, Publications, CSME Hub, SMB Podcast, the 12 magazines and B2Bmarket.ca.
+3. **Inside a unit page**: its own section panel. Events have 33 sections, Awards 19, SMB Podcast 19, each magazine 25, B2Bmarket.ca 22, CSME Hub 12.
+
+The whole structure lives in `src/data/schema.ts`. Every list section there renders with add, edit, delete, CSV template, upload and export, with no extra code.
 
 The brand filter in the top bar narrows every page. Ask AI answers from the CRM's own data.
 
@@ -45,7 +41,10 @@ src/data/lifecycle.ts    stages, phases, the 12-touch journey template
 src/data/store.ts        storage + every action that changes data (and advances the stage)
 src/data/automations.ts  the rules that build the Today list
 src/data/seed.ts         sample data, brands, default rules
-src/pages/*              one file per menu item
+src/data/schema.ts       the menu, every page, every section and its columns
+src/components/Generic.tsx  schema-driven list (add/edit/upload/export)
+src/components/UnitPage.tsx section panel, command centre cards, graphs
+src/pages/*              the custom pages (Today, Founder, Leads, Companies, Sales Team, …)
 src/styles/app.css       design tokens (light and dark) and components
 scripts/build.mjs        esbuild bundle → dist/
 scripts/shot.mjs         Playwright screenshots for visual checks

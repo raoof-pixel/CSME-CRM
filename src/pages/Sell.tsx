@@ -5,10 +5,10 @@ import { Tabs, fmtMoney, fmtDate, Drawer, Field, Toast, useToast, Stat } from '.
 import { DealDrawer } from './Companies'
 import type { Package, PitchTemplate } from '../data/types'
 
-export function Sell() {
+export function Sell(props: { tab?: string; title?: string; blurb?: string } = {}) {
   const db = useDb()
   const route = useRoute()
-  const tab = route[1] ?? 'proposals'
+  const tab = props.tab ?? route[1] ?? 'proposals'
   const [toast, say] = useToast()
   const [editDeal, setEditDeal] = useState<{ companyId: string; dealId: string } | null>(null)
   const [pkgDrawer, setPkgDrawer] = useState<Package | 'new' | null>(null)
@@ -25,21 +25,21 @@ export function Sell() {
   return (
     <>
       <div className="page-head">
-        <div><h1>Sell and deliver</h1><p>From proposal to paid invoice to delivered promise. A Won deal creates its deliverables, so nothing sold is forgotten.</p></div>
+        <div><h1>{props.title ?? 'Sell and deliver'}</h1><p>{props.blurb ?? 'From proposal to paid invoice to delivered promise. A Won deal creates its deliverables, so nothing sold is forgotten.'}</p></div>
       </div>
-      <div className="grid c4 mb">
+      {!props.tab && <div className="grid c4 mb">
         <Stat label="Open deals" value={openDeals.length} sub={fmtMoney(openDeals.reduce((s, d) => s + d.value, 0))} />
         <Stat label="Proposals waiting" value={db.proposals.filter(p => p.status === 'Sent').length} sub="sent, no answer yet" />
         <Stat label="Outstanding invoices" value={fmtMoney(outstanding)} sub={`${overdueInv.length} overdue`} tone={overdueInv.length ? 'warn' : undefined} />
         <Stat label="Deliverables open" value={openDl.length} sub={`${openDl.filter(d => d.due < todayIso()).length} late`} />
-      </div>
-      <Tabs base="sell" items={[
+      </div>}
+      {!props.tab && <Tabs base="sell" items={[
         { key: 'proposals', label: 'Deals and proposals', count: openDeals.length },
         { key: 'ratecard', label: 'Rate card', count: db.packages.length },
         { key: 'pitches', label: 'Pitch library', count: db.pitches.length },
         { key: 'deliverables', label: 'Deliverables', count: openDl.length },
         { key: 'invoices', label: 'Invoices', count: db.invoices.filter(i => i.status !== 'Paid').length },
-      ]} />
+      ]} />}
 
       {tab === 'proposals' && (
         <div className="card wrap">
