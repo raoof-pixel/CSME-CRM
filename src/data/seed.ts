@@ -251,9 +251,55 @@ export const DEFAULT_AUTOMATIONS = [
   { id: 'missing-notes', name: 'Meeting notes missing', description: 'A finished meeting with no notes is flagged the same afternoon.', on: true },
 ]
 
+function seedRecords(): Database['records'] {
+  const r = (unit: string, data: Record<string, unknown>) => ({ id: uidSeed(), unit, createdAt: daysAgo(10), ...data })
+  return {
+    'packages': [
+      r('summit', { name: 'Title sponsor', kind: 'Sponsorship', price: 75000, includes: 'Naming, keynote slot, 10 passes, logo on everything', available: 1 }),
+      r('summit', { name: 'Platinum sponsor', kind: 'Sponsorship', price: 40000, includes: 'Panel seat, booth, 6 passes, e-blast', available: 4 }),
+      r('summit', { name: 'Gold sponsor', kind: 'Sponsorship', price: 20000, includes: 'Booth, 4 passes, logo', available: 8 }),
+      r('summit', { name: 'Exhibitor booth', kind: 'Exhibitor', price: 4500, includes: '10x10 booth, 2 passes', available: 50 }),
+      r('tour', { name: 'Platinum sponsor', kind: 'Sponsorship', price: 35000, includes: 'Stage slot, booth, 6 passes', available: 4 }),
+      r('tour', { name: 'Exhibitor booth', kind: 'Exhibitor', price: 3800, includes: '10x10 booth, 2 passes', available: 120 }),
+      r('tour', { name: 'Workshop slot', kind: 'Workshop', price: 6000, includes: '45-minute workshop, attendee list', available: 16 }),
+      r('awards', { name: 'Category sponsor', kind: 'Award category', price: 12000, includes: 'Named category, presents the award, table of 8', available: 12 }),
+      r('magazine', { name: 'Sponsored article', kind: 'Media', price: 2500, includes: '800-word article, newsletter, social' }),
+      r('magazine', { name: 'E-blast', kind: 'Media', price: 1800, includes: 'Dedicated send to the subscriber list' }),
+      r('magazine', { name: 'Web banner (month)', kind: 'Media', price: 1200, includes: 'Leaderboard on canadiansme.ca' }),
+      r('magazine', { name: 'Full-page magazine ad', kind: 'Media', price: 3200, includes: 'Print and digital issue' }),
+      r('podcast', { name: 'Podcast sponsorship (4 episodes)', kind: 'Media', price: 6000, includes: 'Pre-roll and host read' }),
+    ],
+    'issues': [
+      r('magazine', { month: 'November', issue: 'November 2026', theme: 'Manufacturing and digital health', cover: 'TBD', deadline: daysAhead(12), published: daysAhead(22), status: 'In progress' }),
+      r('magazine', { month: 'December', issue: 'December 2026', theme: 'Economic and social development', deadline: daysAhead(42), published: daysAhead(52), status: 'Planned' }),
+    ],
+    'episodes': [
+      r('podcast', { number: 41, title: 'Robots on the shop floor', guest: 'Matt Rendall, Clearpath Robotics', recorded: daysAgo(18), published: daysAgo(4), status: 'Published', views: 1240, listens: 860 }),
+      r('podcast', { number: 42, title: 'Cash flow habits for small firms', guest: 'Maple Ledger', recorded: daysAhead(5), status: 'Not recorded yet' }),
+    ],
+    'categories': [ r('awards', { name: 'Small Business Leadership', sponsor: '', judges: 2, status: 'Open' }), r('awards', { name: 'Innovation in AI', sponsor: '', judges: 1, status: 'Open' }) ],
+    'nominations': [ r('awards', { nominee: 'Keisha Grant', business: 'Aurora Designs', category: 'Small Business Leadership', status: 'Submitted', submitted: daysAgo(3), owner: 'p-nishat' }) ],
+    'hub-strategy': [ r('hub', { strategy: 'Sell integrated media + event packages', pillar: 'Revenue', owner: 'p-sk', timeline: 'Q1 2027', status: 'In progress', progress: 30 }) ],
+    'hub-kpis': [ r('hub', { kpi: 'Monthly media revenue', category: 'Revenue', current: 0, target: 25000, status: 'Behind' }), r('hub', { kpi: 'Companies in nurture', category: 'Pipeline', current: 4, target: 50, status: 'At risk' }) ],
+    'audience': [ r('magazine', { asOf: daysAgo(5), newsletter: 48000, magazine: 22000, web: 95000, linkedin: 31000, instagram: 8400, facebook: 12000, x: 9600, youtube: 3100 }) ],
+    'mastersheet': [ r('summit', { item: 'Confirm venue hold', area: 'Venue', owner: 'p-raoof', due: daysAhead(30), status: 'Open' }) ],
+    'social-posts': [ r('', { post: 'Clearpath episode clip', platform: 'LinkedIn', brand: 'CanadianSME', maker: 'p-ashraf', due: daysAhead(1), status: 'Ready', approval: 'Pending' }) ],
+    'escalations': [ r('', { problem: 'Ackroo article files still missing after two reminders', label: 'Client', actor: 'p-raoof', raisedBy: 'p-angana', raisedOn: daysAgo(1), status: 'Open' }) ],
+    'founder-priorities': [ r('', { priority: 'Finalize 3 to 5 easy-to-sell integrated media packages', unit: 'CanadianSME', owner: 'p-sk', level: 'High', deadline: daysAhead(14), progress: 20, status: 'Drafting', next: 'Review rate card with Raoof' }) ],
+  }
+}
+
+let seedN = 0
+const uidSeed = () => `r-${++seedN}`
+
 export function buildSeed(): Database {
   return {
     version: 1,
+    records: seedRecords(),
+    messages: [
+      { id: 'msg-1', channel: 'general', fromId: 'p-raoof', text: 'Welcome to the new CRM. Start on Today every morning.', date: at(1, 9) },
+      { id: 'msg-2', channel: 'general', fromId: 'p-maheen', text: 'ok', date: at(1, 10) },
+    ],
     people, companies, contacts, activities, content, events, packages, deals, proposals, invoices, deliverables,
     tasks, meetings, speakers, eventTasks, pitches,
     automations: DEFAULT_AUTOMATIONS,

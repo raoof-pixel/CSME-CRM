@@ -275,8 +275,26 @@ export interface AutomationRule {
   on: boolean;
 }
 
+export interface GenericRecord {
+  id: Id;
+  unit: string;              // page key the record belongs to ('' for global)
+  createdAt: string;
+  deletedAt?: string;        // recycle bin
+  [field: string]: unknown;
+}
+
+export interface Message {
+  id: Id;
+  channel: string;           // 'general', 'sales', a unit key, or 'dm:<personId>'
+  fromId: Id;
+  text: string;
+  date: string;
+}
+
 export interface Database {
   version: number;
+  records: Record<string, GenericRecord[]>;
+  messages: Message[];
   people: Person[];
   companies: Company[];
   contacts: Contact[];

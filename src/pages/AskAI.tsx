@@ -6,14 +6,10 @@ import { Drawer, fmtMoney } from '../components/ui'
 // Ask AI answers from the CRM's own data, with no model and no key, for the questions people ask every day.
 // Hooking up a language model later means replacing answer() with an API call that gets the same context.
 
-const QUESTIONS = ['Who should I follow up with today?', 'Which deals are at risk?', 'Who is going cold?', 'What should we pitch for the Summit?', 'Summarise the pipeline']
+export const QUESTIONS = ['Who should I follow up with today?', 'Which deals are at risk?', 'Who is going cold?', 'What should we pitch for the Summit?', 'Summarise the pipeline']
 
-export function AskAI({ onClose }: { onClose: () => void }) {
-  const db = useDb()
-  const [q, setQ] = useState('')
-  const [log, setLog] = useState<Array<{ q: string; a: string }>>([])
-
-  const answer = (question: string): string => {
+export function answerFor(db: ReturnType<typeof useDb>, question: string): string {
+  {
     const s = question.toLowerCase()
     const me = db.settings.currentUserId
     if (/follow|today|do first/.test(s)) {
@@ -42,6 +38,13 @@ export function AskAI({ onClose }: { onClose: () => void }) {
     }
     return 'I can answer from the CRM data about follow-ups, deals at risk, who is going cold, who to pitch for an event, and the pipeline. Ask one of those, or connect a language model in src/pages/AskAI.tsx for open questions.'
   }
+}
+
+export function AskAI({ onClose }: { onClose: () => void }) {
+  const db = useDb()
+  const [q, setQ] = useState('')
+  const [log, setLog] = useState<Array<{ q: string; a: string }>>([])
+  const answer = (t: string) => answerFor(db, t)
 
   const ask = (text: string) => { if (!text.trim()) return; setLog([...log, { q: text, a: answer(text) }]); setQ('') }
 

@@ -14,7 +14,13 @@ function load(): Database {
     const raw = localStorage.getItem(KEY)
     if (raw) {
       const db = JSON.parse(raw) as Database
-      if (db && db.version === 1) return db
+      if (db && db.version === 1) {
+        // migrations for data saved by earlier builds
+        const fresh = buildSeed()
+        if (!db.records) db.records = fresh.records
+        if (!db.messages) db.messages = fresh.messages
+        return db
+      }
     }
   } catch { /* storage unavailable or corrupt: start fresh */ }
   return buildSeed()
@@ -298,4 +304,42 @@ export function setSettings(patch: Partial<Database['settings']>) {
 
 export function toggleAutomation(id: string) {
   update(d => { const r = d.automations.find(x => x.id === id); if (r) r.on = !r.on })
+}
+
+// ---------- generic records (schema-driven sections) ----------
+import type { GenericRecord, Message } from './types'
+
+export function recordsOf(d: Database, collection: string, unit?: string): GenericRecord[] {
+  const list = d.records[collection] ?? []
+  return list.filter(r => !r.deletedAt && (unit === undefined || r.unit === unit))
+}
+
+export function addRecord(collection: string, unit: string, data: Record<string, unknown>): Id {
+  const id = uid('r')
+  update(d => { (d.records[collection] ??= []).push({ id, unit, createdAt: todayIso(), ...data }) })
+  return id
+}
+
+export function updateRecord(collection: string, id: Id, data: Record<string, unknown>) {
+  update(d => { const r = (d.records[collection] ?? []).find(x => x.id === id); if (r) Object.assign(r, data) })
+}
+
+export function deleteRecord(collection: string, id: Id) {
+  update(d => { const r = (d.records[collection] ?? []).find(x => x.id === id); if (r) r.deletedAt = nowIso() })
+}
+
+export function restoreRecord(collection: string, id: Id) {
+  update(d => { const r = (d.records[collection] ?? []).find(x => x.id === id); if (r) delete r.deletedAt })
+}
+
+export function purgeRecord(collection: string, id: Id) {
+  update(d => { d.records[collection] = (d.records[collection] ?? []).filter(x => x.id !== id) })
+}
+
+export function importRecords(collection: string, unit: string, rows: Array<Record<string, unknown>>) {
+  update(d => { const list = (d.records[collection] ??= []); rows.forEach(r => list.push({ id: uid('r'), unit, createdAt: todayIso(), ...r })) })
+}
+
+export function sendMessage(channel: string, text: string) {
+  update(d => { d.messages.push({ id: uid('msg'), channel, fromId: d.settings.currentUserId, text, date: nowIso() } as Message) })
 }

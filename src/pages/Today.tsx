@@ -5,7 +5,7 @@ import { useUi } from '../app/uiState'
 import { Stat, Toast, useToast, fmtMoney } from '../components/ui'
 import { LogActivity } from '../components/LogActivity'
 
-export function Today() {
+export function Today(props: { mode?: 'followups' | 'approvals'; title?: string; blurb?: string } = {}) {
   const db = useDb()
   const ui = useUi()
   const [scope, setScope] = useState<'mine' | 'all'>('all')
@@ -16,8 +16,9 @@ export function Today() {
   const items = useMemo(() => {
     let list = runRules(db, scope === 'mine' ? me : undefined)
     if (ui.brand !== 'All') list = list.filter(i => !i.companyId || db.companies.find(c => c.id === i.companyId)?.brands.includes(ui.brand as any))
+    if (props.mode === 'followups') list = list.filter(i => /^(fu|cfu|journey|cold|stuck|prop):/.test(i.key))
     return list
-  }, [db, scope, me, ui.brand])
+  }, [db, scope, me, ui.brand, props.mode])
 
   const now = items.filter(i => i.urgency === 'now')
   const today = items.filter(i => i.urgency === 'today')
@@ -67,8 +68,8 @@ export function Today() {
     <>
       <div className="page-head">
         <div>
-          <h1>Today</h1>
-          <p>{dayName}. Everything that needs a person today, in one list: follow-ups, journey touches, chasers, meetings and tasks. Act on it or hide it.</p>
+          <h1>{props.title ?? 'Today'}</h1>
+          <p>{props.blurb ?? `${dayName}. Everything that needs a person today, in one list: follow-ups, journey touches, chasers, meetings and tasks. Act on it or hide it.`}</p>
         </div>
         <div className="page-actions">
           <div className="tabs" style={{ margin: 0, borderBottom: 0 }}>

@@ -8,7 +8,8 @@ import { StageStrip, StagePill, Drawer, Field, fmtDate, fmtMoney, Icons, Toast, 
 import { parseCsv, download, COMPANY_TEMPLATE } from '../data/csv'
 import type { Stage, Brand, Company } from '../data/types'
 
-export function Pipeline() {
+export function Pipeline(props: { base?: string } = {}) {
+  const base = props.base ?? 'leads'
   const db = useDb()
   const route = useRoute()
   const ui = useUi()
@@ -39,8 +40,8 @@ export function Pipeline() {
     <>
       <div className="page-head">
         <div>
-          <h1>Pipeline</h1>
-          <p>One board for every company, from first lead to delivered sponsor. The stage changes when you log an action, not when you edit a dropdown.</p>
+          <h1>Leads</h1>
+          <p>Every lead list and where each company stands, from mined to delivered sponsor. The stage changes when you log an action, not when you edit a dropdown.</p>
         </div>
         <div className="page-actions">
           <button className="btn" onClick={() => setImporting(true)}><Icons.upload />Import a list</button>
@@ -48,12 +49,12 @@ export function Pipeline() {
         </div>
       </div>
 
-      <div className="mb"><StageStrip counts={counts} active={singleStage} /></div>
+      <div className="mb"><StageStrip counts={counts} active={singleStage} base={`#/${base}`} /></div>
 
       <nav className="tabs" aria-label="Pipeline views">
         {PIPELINE_VIEWS.map(v => {
           const n = scoped.filter(c => (v.stages as readonly Stage[]).includes(c.stage)).length
-          return <a key={v.key} href={`#/pipeline/${v.key}`} className={!singleStage && view.key === v.key ? 'on' : ''}>{v.label}<span className="n">{n}</span></a>
+          return <a key={v.key} href={`#/${base}/${v.key}`} className={!singleStage && view.key === v.key ? 'on' : ''}>{v.label}<span className="n">{n}</span></a>
         })}
         {singleStage && <a href="#" className="on" onClick={(e: any) => e.preventDefault()}>{singleStage}<span className="n">{rows.length}</span></a>}
       </nav>

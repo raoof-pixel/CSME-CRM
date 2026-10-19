@@ -7,10 +7,10 @@ import { BRANDS } from '../data/seed'
 import { download } from '../data/csv'
 import type { Brand, Person } from '../data/types'
 
-export function Admin() {
+export function Admin(props: { tab?: string; title?: string } = {}) {
   const db = useDb()
   const route = useRoute()
-  const tab = route[1] ?? 'settings'
+  const tab = props.tab ?? route[1] ?? 'settings'
   const [toast, say] = useToast()
   const [personDrawer, setPersonDrawer] = useState<Person | 'new' | null>(null)
 
@@ -27,8 +27,8 @@ export function Admin() {
 
   return (
     <>
-      <div className="page-head"><div><h1>Admin</h1><p>Settings, the people, the automation rules, targets and data quality. Nothing here is day-to-day work.</p></div></div>
-      <Tabs base="admin" items={[{ key: 'settings', label: 'Settings' }, { key: 'people', label: 'People', count: db.people.length }, { key: 'automations', label: 'Automations', count: db.automations.filter(a => a.on).length }, { key: 'targets', label: 'Targets' }, { key: 'data', label: 'Data quality', count: dupes.length + missing.length }, { key: 'help', label: 'How to use this CRM' }]} />
+      <div className="page-head"><div><h1>{props.title ?? 'Settings'}</h1><p>Settings, the people, the automation rules, targets and data quality. Nothing here is day-to-day work.</p></div></div>
+      {!props.tab && <Tabs base="settings" items={[{ key: 'settings', label: 'Settings' }, { key: 'people', label: 'People', count: db.people.length }, { key: 'automations', label: 'Automations', count: db.automations.filter(a => a.on).length }, { key: 'targets', label: 'Targets' }, { key: 'data', label: 'Data quality', count: dupes.length + missing.length }, { key: 'help', label: 'How to use this CRM' }]} />}
 
       {tab === 'settings' && (
         <div className="grid c2">

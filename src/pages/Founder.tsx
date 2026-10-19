@@ -6,12 +6,14 @@ import { Tabs, Stat, fmtMoney, fmtDate, StagePill } from '../components/ui'
 import { STAGES } from '../data/lifecycle'
 import { healthOf } from '../data/automations'
 import type { Brand } from '../data/types'
+import { TeamPerformance } from './Team'
+import { DecisionsRequired } from './custom'
 
-export function Founder() {
+export function Founder(props: { tab?: string } = {}) {
   const db = useDb()
   const route = useRoute()
   const ui = useUi()
-  const tab = route[1] ?? 'overview'
+  const tab = props.tab ?? route[1] ?? 'overview'
   const month = new Date().toISOString().slice(0, 7)
   const inBrand = (brands: Brand[] | undefined, brand?: Brand) => ui.brand === 'All' || (brands?.includes(ui.brand as Brand) ?? brand === ui.brand)
 
@@ -42,9 +44,9 @@ export function Founder() {
   return (
     <>
       <div className="page-head">
-        <div><h1>Founder</h1><p>Only what needs SK: money, the big deals, the team, and the decisions. Routine work stays on Today.</p></div>
+        <div><h1>Founder Command Centre</h1><p>SK Uddin: revenue, cash, major deals, team performance, events, decisions and AI. Routine work stays with Raoof on Today.</p></div>
       </div>
-      <Tabs base="founder" items={[{ key: 'overview', label: 'Overview' }, { key: 'money', label: 'Money' }, { key: 'deals', label: 'Big deals', count: big.length }, { key: 'decisions', label: 'Decisions', count: founderTasks.length }, { key: 'brands', label: 'By brand' }, { key: 'history', label: 'History' }]} />
+      <Tabs base="founder-cc" items={[{ key: 'overview', label: 'Overview' }, { key: 'decisions', label: 'My Founder Tasks', count: founderTasks.length }, { key: 'money', label: 'Revenue & Cash' }, { key: 'deals', label: 'Major Deals', count: big.length }, { key: 'team', label: 'Team Performance' }, { key: 'required', label: 'Decisions Required' }, { key: 'brands', label: 'By brand' }, { key: 'history', label: 'History' }]} />
 
       {tab === 'overview' && (
         <>
@@ -125,6 +127,9 @@ export function Founder() {
           </tbody></table>
         </div>
       )}
+
+      {tab === 'team' && <TeamPerformance />}
+      {tab === 'required' && <DecisionsRequired />}
 
       {tab === 'brands' && (
         <div className="card wrap">
