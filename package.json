@@ -1,0 +1,20 @@
+{
+  "name": "csme-crm",
+  "private": true,
+  "version": "2.0.0",
+  "description": "CanadianSME CRM: one lifecycle from mined lead to delivered sponsor.",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "preview": "node scripts/shot.mjs today",
+    "serve": "npx serve dist"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "^5.6.0"
+  }
+}
